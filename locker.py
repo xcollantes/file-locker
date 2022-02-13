@@ -35,7 +35,7 @@ def encrypt(targetFile: str, fernet: Fernet) -> None:
     unencryptedFullPath: str = os.path.abspath(targetFile)
     filename: str = os.path.basename(unencryptedFullPath)
     dir: str = os.path.dirname(unencryptedFullPath)
-    print(f"[ENCRYPT] Encrypting {filename}...")
+    print(f"[ENCRYPT] Encrypting {filename}... ", end="")
     with open(targetFile, "rb") as target:
         targetContent: bytes = target.read()
 
@@ -44,17 +44,17 @@ def encrypt(targetFile: str, fernet: Fernet) -> None:
     with open(os.path.join(dir, f"(encrypted) {filename}"), "wb") as encryptedFile:
         encryptedFile.write(fileEncrypted)
 
-    print(f"[ENCRYPT] {filename} encrypted")
+    print(f"{filename} encrypted")
     if FLAGS.destroy_original:
         os.remove(unencryptedFullPath)
-        print(f"[ENCRYPT] Removing unencrypted original {filename}")
+        print(f"Removing unencrypted original {filename}")
 
 
 def decrypt(encryptedFile: str, fernet: Fernet) -> None:
     fullPath: str = os.path.abspath(encryptedFile)
     filename: str = os.path.basename(fullPath).replace("(encrypted) ", "")
     dir: str = os.path.dirname(fullPath)
-    print(f"[DECRYPT] Decrypting {filename}...")
+    print(f"[DECRYPT] Decrypting {filename}... ", end="")
     with open(encryptedFile, "rb") as encrypted:
         encryptedContent: bytes = encrypted.read()
 
@@ -63,11 +63,14 @@ def decrypt(encryptedFile: str, fernet: Fernet) -> None:
     with open(os.path.join(dir, filename), "wb") as decryptedFile:
         decryptedFile.write(decryptedContent)
 
-    print(f"[DECRYPT] {filename} decrypted")
+    print(f"{filename} decrypted")
     os.remove(fullPath)
 
 
 def main(argv: List[str]):
+    if FLAGS.encrypt.startswith("(encrypted)"):
+        logging.fatal("File is already encrypted.")
+
     if FLAGS.encrypt:
         key: bytes = Fernet.generate_key()
         fernet: Fernet = Fernet(key)
