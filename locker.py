@@ -12,8 +12,11 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string("key", "", "Fernet key for decryption.")
 flags.DEFINE_bool("destroy_original", False,
                   "Delete the unencrypted original when encrypting.")
-flags.DEFINE_string("encrypt", None, "Encrypt file path.")
-flags.DEFINE_string("decrypt", None, "Decrypt file path.")
+flags.DEFINE_string(
+    "encrypt", None, "Encrypt file path. Creates symmetric key and encrypts "
+    + "with that key.")
+flags.DEFINE_string(
+    "decrypt", None, "Decrypt file path. Decrypts file. Must specify --key.")
 
 
 def outputFernetKey(key: str) -> None:
@@ -68,10 +71,9 @@ def decrypt(encryptedFile: str, fernet: Fernet) -> None:
 
 
 def main(argv: List[str]):
-    if FLAGS.encrypt.startswith("(encrypted)"):
-        logging.fatal("File is already encrypted.")
-
     if FLAGS.encrypt:
+        if os.path.basename(FLAGS.encrypt).startswith("(encrypted)"):
+            logging.fatal("File is already encrypted.")
         key: bytes = Fernet.generate_key()
         fernet: Fernet = Fernet(key)
         encrypt(FLAGS.encrypt, fernet)
