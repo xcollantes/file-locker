@@ -33,7 +33,9 @@ def readFernetKey(keyPath: str) -> bytes:
     return key
 
 
-def encrypt(targetFile: str, fernet: Fernet) -> None:
+def encrypt(targetFile: str,
+            fernet: Fernet,
+            destroyOriginal: bool = False) -> None:
     """Encrypt a file."""
     unencryptedFullPath: str = os.path.abspath(targetFile)
     filename: str = os.path.basename(unencryptedFullPath)
@@ -48,7 +50,7 @@ def encrypt(targetFile: str, fernet: Fernet) -> None:
         encryptedFile.write(fileEncrypted)
 
     print(f"{filename} encrypted")
-    if FLAGS.destroy_original:
+    if destroyOriginal:
         os.remove(unencryptedFullPath)
         print(f"Removing unencrypted original {filename}")
 
@@ -76,7 +78,7 @@ def main(argv: List[str]):
             logging.fatal("File is already encrypted.")
         key: bytes = Fernet.generate_key()
         fernet: Fernet = Fernet(key)
-        encrypt(FLAGS.encrypt, fernet)
+        encrypt(FLAGS.encrypt, fernet, FLAGS.destroy_original)
         outputFernetKey(key)
     elif FLAGS.decrypt:
         fernet: Fernet = Fernet(readFernetKey(FLAGS.key))
